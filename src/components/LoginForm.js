@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import firebase from 'firebase';
+import { Text } from 'react-native';
 
 import { Button, Card, CardSection, Input } from './common';
 
@@ -8,8 +10,25 @@ class LoginForm extends Component {
 
     this.state = {
       email: '',
-      password: ''
+      password: '',
+      loginError: '',
     };
+
+    this.onButtonPress = this.buttonPress.bind(this);
+  }
+
+  buttonPress() {
+    const { email, password } = this.state;
+
+    this.setState({loginError: ''});
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .catch(() => {
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+          .catch(() => {
+            this.setState({ loginError: "Authenticated Failed." });
+          });
+      });
   }
 
   render() {
@@ -32,8 +51,11 @@ class LoginForm extends Component {
             onChangeText={password => this.setState({ password })}
           />
         </CardSection>
+        <Text style={styles.errorStyles}>
+          {this.state.loginError}
+        </Text>
         <CardSection>
-          <Button>
+          <Button onPress={this.onButtonPress}>
             Log In
           </Button>
         </CardSection>
@@ -43,7 +65,11 @@ class LoginForm extends Component {
 }
 
 const styles = {
-
+  errorStyles: {
+    fontSize: 20,
+    alignSelf: 'center',
+    color: '#ff0000'
+  }
 };
 
 export default LoginForm;
